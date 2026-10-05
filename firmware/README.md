@@ -43,8 +43,8 @@ BOOT pulsado. Entra en modo descarga y `upload` funciona.
 
 ## Instalar en otra placa
 
-`../installer/` es una página web que flashea una Heltec E213 desde Chrome o Edge con WebSerial, sin
-PlatformIO ni esptool. Se regenera con:
+<https://they-juanreina.github.io/charm/installer/> flashea una Heltec E213 desde Chrome o Edge con WebSerial,
+sin PlatformIO ni esptool. La página vive en `../installer/`. Se regenera con:
 
 ```bash
 python3 tools/build_installer.py [--serve]

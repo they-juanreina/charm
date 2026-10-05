@@ -14,7 +14,7 @@ pantalla de tinta electrónica que conserva la imagen sin gastar batería. Firmw
 
 ## Instalarlo en una placa
 
-Abre **[el instalador](installer/)** en Chrome o Edge, conecta la placa por USB-C y pulsa un botón.
+Abre **[el instalador](https://they-juanreina.github.io/charm/installer/)** en Chrome o Edge, conecta la placa por USB-C y pulsa un botón.
 No hace falta instalar nada: ver [installer/README.md](installer/README.md).
 
 Con PlatformIO, desde el código:

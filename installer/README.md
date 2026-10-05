@@ -4,6 +4,10 @@ Una página que flashea el firmware del charm en una Heltec Vision Master E213 *
 con [ESP Web Tools](https://esphome.github.io/esp-web-tools/) y WebSerial. Quien la use no instala
 nada: abre la página en Chrome o Edge, conecta la placa por USB-C y pulsa un botón.
 
+**Publicada en <https://they-juanreina.github.io/charm/installer/>** (GitHub Pages, desde el repositorio
+[they-juanreina/charm](https://github.com/they-juanreina/charm)). Para actualizarla: regenera los
+binarios, copia `installer/` al repositorio y haz push.
+
 ```
 installer/
   index.html                    la página
