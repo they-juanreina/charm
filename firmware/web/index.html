@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>charm</title>
+<style>
+  @font-face { font-family:'DM'; src:url(data:font/woff2;base64,__FONT_B64__) format('woff2'); font-display:block }
+  :root {
+    --ground:#0B0B0B; --ink:#FFC61E; --paper:#F5F2E8;
+    --muted:#9A9488; --line:#3A362E; --deep:#7A5E0E; --danger:#B4472E; --sunken:#141310;
+  }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--ground); color:var(--paper);
+         font:15px/1.4 'DM', ui-monospace, Menlo, monospace; -webkit-text-size-adjust:100% }
+  main { max-width:430px; margin:0 auto; padding:8px 20px 48px }
+  header { padding:14px 0 18px }
+  h1 { margin:0; font-size:30px; line-height:32px; color:var(--ink); font-weight:400 }
+  #status { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; font-size:13px; color:var(--muted) }
+  #status b { font-weight:400; color:var(--ink) }
+  .lbl { font-size:13px; color:var(--muted); letter-spacing:.06em }
+  .sec { margin:0 0 22px }
+  .row { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap }
+  .sunken { display:flex; align-items:center; justify-content:center;
+            padding:19px 14px; border:2px solid var(--line); background:var(--sunken) }
+  canvas { width:250px; height:122px; max-width:100%; flex-shrink:0; image-rendering:pixelated;
+           background:var(--paper); display:block; touch-action:none }
+  #cv { cursor:grab }
+  button { font:inherit; font-size:15px; padding:13px 16px; border:2px solid var(--ink);
+           background:var(--ink); color:var(--ground); box-shadow:4px 4px 0 0 var(--deep); cursor:pointer }
+  button:active { transform:translate(2px,2px); box-shadow:2px 2px 0 0 var(--deep) }
+  button.ghost { background:transparent; border-color:var(--line); color:var(--muted); box-shadow:none }
+  button.danger { background:transparent; border-color:var(--danger); color:var(--danger); box-shadow:none }
+  button.tiny { padding:5px 11px; font-size:13px; box-shadow:none }
+  button.grow { flex:1 }
+  input, textarea, select { width:100%; font:inherit; padding:12px 13px; color:var(--paper);
+                            background:transparent; border:2px solid var(--line) }
+  input:focus, textarea:focus { outline:none; border-color:var(--ink) }
+  textarea { min-height:230px; line-height:22px; resize:vertical }
+  textarea.short { min-height:140px }
+  .card { display:flex; align-items:center; gap:12px; padding:11px 12px; margin-top:8px;
+          border:2px solid var(--line); cursor:pointer }
+  .card .n { width:26px; flex-shrink:0; text-align:center; padding:2px 0;
+             border:2px solid var(--ink); color:var(--ink); font-size:14px }
+  .card .t { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap }
+  .card .b { width:34px; flex-shrink:0; text-align:right; font-size:13px; color:var(--muted) }
+  .card i { color:var(--muted); font-style:normal }
+  .sliders { display:flex; flex-direction:column; gap:14px; margin-top:14px }
+  .sl { display:flex; flex-direction:column; gap:7px }
+  .sl div { display:flex; justify-content:space-between; font-size:13px; color:var(--muted) }
+  .sl b { font-weight:400; color:var(--ink) }
+  input[type=range] { -webkit-appearance:none; appearance:none; height:12px; padding:0;
+                      border:0; background:#26241F }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:20px;
+                      margin-top:-4px; background:var(--paper); border:0; border-radius:0 }
+  input[type=range]::-moz-range-thumb { width:12px; height:20px; background:var(--paper); border:0; border-radius:0 }
+  input[type=file] { border:2px dashed var(--line); padding:11px }
+  #msg { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); padding:11px 16px;
+         background:var(--ink); color:var(--ground); opacity:0; transition:opacity .2s; pointer-events:none }
+  #msg.on { opacity:1 }
+  .hint { font-size:13px; color:var(--muted); margin:8px 0 0 }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="name">…</h1>
+    <div id="status">conectando…</div>
+  </header>
+
+  <div class="sec">
+    <div class="row" style="justify-content:space-between; margin-top:0">
+      <span class="lbl">EN LA PANTALLA</span>
+      <button class="ghost tiny" id="refresh">actualizar</button>
+    </div>
+    <div class="sunken" style="margin-top:10px"><canvas id="scr" width="250" height="122"></canvas></div>
+  </div>
+
+  <div class="sec row" style="margin-top:0">
+    <button class="grow" id="new">nuevo poema</button>
+    <button class="ghost" id="reshuffle">barajar</button>
+    <button class="ghost" id="exit">apagar wifi</button>
+  </div>
+
+  <div class="sec" id="editor" hidden>
+    <span class="lbl">TÍTULO (OPCIONAL)</span>
+    <div class="row"><input id="title" placeholder="sin título"></div>
+    <span class="lbl" style="display:block; margin-top:16px">VERSOS</span>
+    <div class="row"><textarea id="body" placeholder="Cada línea es un verso.&#10;Una línea en blanco separa estrofas."></textarea></div>
+    <div class="row">
+      <button class="grow" id="save">guardar</button>
+      <button class="ghost" id="cancel">cancelar</button>
+      <button class="danger" id="del" hidden>borrar</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <span class="lbl">IMAGEN</span>
+    <div class="row"><input type="file" id="file" accept="image/*"></div>
+    <div class="sunken" style="margin-top:10px"><canvas id="cv" width="250" height="122"></canvas></div>
+    <p class="hint">Arrastra la imagen para elegir el recorte.</p>
+    <div class="row">
+      <select id="fitmode" style="flex:1"><option value="cover">recortar</option><option value="fit">entera</option></select>
+      <select id="dither" style="flex:1"><option value="fs">Floyd-Steinberg</option><option value="atk">Atkinson</option><option value="bayer">Bayer 4×4</option><option value="none">umbral</option></select>
+    </div>
+    <div class="row"><label style="display:flex; gap:8px; align-items:center; font-size:13px; color:var(--muted)"><input type="checkbox" id="invert" style="width:auto"> invertir</label></div>
+    <div class="sliders">
+      <div class="sl"><div><span>ZOOM</span><b id="zoomV">100%</b></div><input type="range" id="zoom" min="100" max="400" value="100"></div>
+      <div class="sl"><div><span>BRILLO</span><b id="brightV">0</b></div><input type="range" id="bright" min="-100" max="100" value="0"></div>
+      <div class="sl"><div><span>CONTRASTE</span><b id="contrastV">0</b></div><input type="range" id="contrast" min="-100" max="100" value="0"></div>
+      <div class="sl"><div><span>UMBRAL</span><b id="thrV">128</b></div><input type="range" id="thr" min="1" max="254" value="128"></div>
+    </div>
+    <div class="row"><button class="grow" id="upload" disabled>subir imagen</button></div>
+    <p class="hint">En iPhone, si no puedes elegir archivo desde esta ventana, abre Safari en http://192.168.4.1</p>
+  </div>
+
+  <div class="sec" id="ded">
+    <span class="lbl">DEDICATORIA · LA CARTA DE AS</span>
+    <p class="hint">Si escribes una dedicatoria, será la primera carta de cada baraja: la que sale al destapar el as.</p>
+    <div class="row"><input id="dedTo" placeholder="Para ti"></div>
+    <div class="row"><textarea id="dedBody" class="short" placeholder="Tu mensaje. Cada línea es una línea en la pantalla."></textarea></div>
+    <div class="row"><input id="dedFrom" placeholder="firma (opcional)"></div>
+    <div class="row">
+      <button class="grow" id="saveDed">guardar dedicatoria</button>
+      <button class="danger" id="delDed" hidden>quitar</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <span class="lbl">EL NOMBRE DE LA CARTA DE AS</span>
+    <div class="row"><input id="nameInput" maxlength="32" placeholder="@stayyellow" style="flex:1"><button id="saveName">guardar</button></div>
+  </div>
+
+  <div class="sec">
+    <span class="lbl">LA BARAJA</span>
+    <div id="list"></div>
+  </div>
+</main>
+<div id="msg"></div>
+<script>
+const $ = s => document.querySelector(s);
+let cards = [], editing = null, img = null, pan = { x: 0, y: 0 };
+
+function toast(t) { const m = $('#msg'); m.textContent = t; m.classList.add('on'); setTimeout(() => m.classList.remove('on'), 2200); }
+async function api(path, opts) {
+  const r = await fetch(path, Object.assign({ cache: 'no-store' }, opts || {}));
+  if (!r.ok) { let e = 'error ' + r.status; try { e = (await r.json()).error || e; } catch (_) {} throw new Error(e); }
+  return r;
+}
+async function status() {
+  try {
+    const s = await (await api('/api/status')).json();
+    $('#status').innerHTML = `<span><b>${s.cards}</b> cartas</span><span>vas por ${s.deckPos ? 'la <b>' + s.deckPos + '</b>' : 'el <b>as</b>'}</span>`
+      + (s.dedication ? '<span>con <b>dedicatoria</b></span>' : '') + `<span>${s.usb ? 'cargando' : 'batería <b>' + s.battery_pct + '%</b>'}</span><span>v${s.fw}</span>`;
+    $('#name').textContent = s.name; document.title = s.name;
+    if (document.activeElement !== $('#nameInput')) $('#nameInput').value = s.name;
+  } catch (e) { $('#status').textContent = 'sin conexión'; }
+}
+// Los 3904 bytes del lienzo tal como están en el charm: bit 1 = negro
+async function screen() {
+  try {
+    const b = new Uint8Array(await (await api('/api/screen')).arrayBuffer());
+    if (b.length < 3904) return;
+    const c = $('#scr').getContext('2d'), im = c.createImageData(250, 122), d = im.data;
+    for (let y = 0; y < 122; y++) for (let x = 0; x < 250; x++) {
+      const on = b[y * 32 + (x >> 3)] & (0x80 >> (x & 7)), i = (y * 250 + x) * 4, v = on ? 11 : 245;
+      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+    }
+    c.putImageData(im, 0, 0);
+  } catch (e) {}
+}
+async function load() {
+  cards = await (await api('/api/cards')).json();
+  const L = $('#list'); L.innerHTML = '';
+  if (!cards.length) L.innerHTML = '<p class="hint">Todavía no hay cartas. Escribe un poema o sube una imagen.</p>';
+  for (const c of cards) {
+    const d = document.createElement('div'); d.className = 'card';
+    const t = c.type === 'image' ? '<i>imagen</i>' : (c.title ? esc(c.title) : (c.first ? '<i>' + esc(c.first) + '…</i>' : '<i>sin título</i>'));
+    d.innerHTML = `<span class="n">${c.id}</span><span class="t">${t}</span><span class="b">${c.size}</span>`;
+    d.onclick = () => c.type === 'image' ? delImage(c) : edit(c);
+    L.appendChild(d);
+  }
+  status();
+}
+function esc(s) { return s.replace(/[&<>]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[ch])); }
+function split(text) {
+  const m = text.match(/^#[ \t]*(.*)\r?\n?([\s\S]*)$/);
+  return m ? { title: m[1].trim(), body: m[2] } : { title: '', body: text };
+}
+async function edit(c) {
+  const t = await (await api('/api/cards/' + c.id)).text();
+  const p = split(t);
+  editing = c.id; $('#title').value = p.title; $('#body').value = p.body;
+  $('#del').hidden = false; $('#editor').hidden = false; $('#body').focus();
+}
+$('#new').onclick = () => { editing = null; $('#title').value = ''; $('#body').value = ''; $('#del').hidden = true; $('#editor').hidden = false; $('#title').focus(); };
+$('#cancel').onclick = () => { $('#editor').hidden = true; };
+$('#refresh').onclick = screen;
+$('#save').onclick = async () => {
+  const title = $('#title').value.trim(), body = $('#body').value.replace(/\r/g, '').replace(/\s+$/, '') + '\n';
+  if (!body.trim()) return toast('El poema está vacío');
+  const text = (title ? '# ' + title + '\n' : '') + body;
+  try {
+    const r = await api(editing ? '/api/cards/' + editing : '/api/cards', { method: editing ? 'PUT' : 'POST', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text });
+    const j = await r.json(); toast('Guardado ' + j.id); $('#editor').hidden = true; load();
+  } catch (e) { toast(e.message); }
+};
+$('#del').onclick = async () => {
+  if (!editing || !confirm('¿Borrar esta carta?')) return;
+  try { await api('/api/cards/' + editing, { method: 'DELETE' }); toast('Borrada'); $('#editor').hidden = true; load(); } catch (e) { toast(e.message); }
+};
+async function delImage(c) {
+  if (!confirm('¿Borrar la imagen ' + c.id + '?')) return;
+  try { await api('/api/cards/' + c.id, { method: 'DELETE' }); toast('Borrada'); load(); } catch (e) { toast(e.message); }
+}
+$('#saveName').onclick = async () => {
+  const n = $('#nameInput').value.trim();
+  if (!n) return toast('Escribe un nombre');
+  try { await api('/api/name', { method: 'PUT', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: n }); toast('Nombre guardado'); status(); } catch (e) { toast(e.message); }
+};
+// Dedicatoria: mismo formato que un poema ("# Para…", versos) y la firma en la última línea con raya
+async function loadDed() {
+  try {
+    const t = await (await api('/api/dedication')).text();
+    const p = split(t); let body = p.body.replace(/\s+$/, ''), from = '';
+    const m = body.match(/\n*^— (.*)$(?![\s\S])/m);
+    if (m) { from = m[1].trim(); body = body.slice(0, m.index); }
+    $('#dedTo').value = p.title; $('#dedBody').value = body; $('#dedFrom').value = from; $('#delDed').hidden = false;
+  } catch (e) { $('#delDed').hidden = true; }
+}
+$('#saveDed').onclick = async () => {
+  const to = $('#dedTo').value.trim() || 'Para ti', body = $('#dedBody').value.replace(/\r/g, '').replace(/\s+$/, ''), from = $('#dedFrom').value.trim();
+  if (!body.trim()) return toast('Escribe el mensaje');
+  const text = '# ' + to + '\n' + body + (from ? '\n\n— ' + from : '') + '\n';
+  try { await api('/api/dedication', { method: 'PUT', headers: { 'Content-Type': 'text/plain; charset=utf-8' }, body: text }); toast('Dedicatoria guardada'); $('#delDed').hidden = false; status(); screen(); } catch (e) { toast(e.message); }
+};
+$('#delDed').onclick = async () => {
+  if (!confirm('¿Quitar la dedicatoria?')) return;
+  try { await api('/api/dedication', { method: 'DELETE' }); $('#dedTo').value = $('#dedBody').value = $('#dedFrom').value = ''; $('#delDed').hidden = true; toast('Dedicatoria quitada'); status(); } catch (e) { toast(e.message); }
+};
+$('#reshuffle').onclick = async () => { try { await api('/api/reshuffle', { method: 'POST' }); toast('Baraja nueva'); status(); } catch (e) { toast(e.message); } };
+$('#exit').onclick = async () => { if (!confirm('¿Apagar el WiFi del charm?')) return; try { await api('/api/exit', { method: 'POST' }); toast('WiFi apagado'); } catch (e) { toast(e.message); } };
+
+// ---- imagen: letterbox a 250x122, tramado, empaquetado 1 bpp MSB-first (bit 1 = negro) ----
+const cv = $('#cv'), ctx = cv.getContext('2d', { willReadFrequently: true });
+function render() {
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 250, 122);
+  $('#zoomV').textContent = $('#zoom').value + '%';
+  $('#brightV').textContent = $('#bright').value;
+  $('#contrastV').textContent = $('#contrast').value;
+  $('#thrV').textContent = $('#thr').value;
+  if (!img) return;
+  const base = $('#fitmode').value === 'cover' ? Math.max(250 / img.width, 122 / img.height) : Math.min(250 / img.width, 122 / img.height);
+  const s = base * (+$('#zoom').value / 100), w = Math.round(img.width * s), h = Math.round(img.height * s);
+  const maxX = Math.max(0, (w - 250) / 2) + 40, maxY = Math.max(0, (h - 122) / 2) + 40;
+  pan.x = Math.max(-maxX, Math.min(maxX, pan.x)); pan.y = Math.max(-maxY, Math.min(maxY, pan.y));
+  ctx.drawImage(img, (250 - w) / 2 + pan.x, (122 - h) / 2 + pan.y, w, h);
+  const id = ctx.getImageData(0, 0, 250, 122), d = id.data, thr = +$('#thr').value, inv = $('#invert').checked, mode = $('#dither').value;
+  const br = +$('#bright').value * 1.28, ct = (+$('#contrast').value + 100) / 100;
+  const g = new Float32Array(250 * 122);
+  for (let i = 0; i < g.length; i++) {
+    let v = 0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2];
+    v = (v - 128) * ct * ct + 128 + br;
+    v = Math.max(0, Math.min(255, v));
+    g[i] = inv ? 255 - v : v;
+  }
+  const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  const add = (i, e) => { if (i >= 0 && i < g.length) g[i] += e; };
+  for (let y = 0; y < 122; y++) for (let x = 0; x < 250; x++) {
+    const i = y * 250 + x, old = g[i];
+    let t = thr;
+    if (mode === 'bayer') t = thr + (bayer[(y & 3) * 4 + (x & 3)] - 7.5) * 16;
+    const nv = old < t ? 0 : 255; g[i] = nv;
+    const e = old - nv;
+    if (mode === 'fs') {
+      if (x + 1 < 250) add(i + 1, e * 7 / 16);
+      if (y + 1 < 122) { if (x) add(i + 249, e * 3 / 16); add(i + 250, e * 5 / 16); if (x + 1 < 250) add(i + 251, e / 16); }
+    } else if (mode === 'atk') {
+      const k = e / 8;
+      if (x + 1 < 250) add(i + 1, k); if (x + 2 < 250) add(i + 2, k);
+      if (y + 1 < 122) { if (x) add(i + 249, k); add(i + 250, k); if (x + 1 < 250) add(i + 251, k); }
+      if (y + 2 < 122) add(i + 500, k);
+    }
+    d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = nv; d[i * 4 + 3] = 255;
+  }
+  ctx.putImageData(id, 0, 0);
+}
+function pack() {
+  const d = ctx.getImageData(0, 0, 250, 122).data, bytes = new Uint8Array(32 * 122);
+  for (let y = 0; y < 122; y++) for (let x = 0; x < 250; x++) if (d[(y * 250 + x) * 4] < 128) bytes[y * 32 + (x >> 3)] |= 0x80 >> (x & 7);
+  return bytes;
+}
+$('#file').onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  const url = URL.createObjectURL(f); const im = new Image();
+  im.onload = () => { img = im; pan = { x: 0, y: 0 }; URL.revokeObjectURL(url); render(); $('#upload').disabled = false; };
+  im.src = url;
+};
+['thr', 'dither', 'invert', 'bright', 'contrast', 'fitmode', 'zoom'].forEach(id => $('#' + id).oninput = $('#' + id).onchange = render);
+let drag = null;
+cv.onpointerdown = e => { if (!img) return; drag = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y }; cv.setPointerCapture(e.pointerId); };
+cv.onpointermove = e => { if (!drag) return; const k = 250 / cv.getBoundingClientRect().width; pan.x = drag.px + (e.clientX - drag.x) * k; pan.y = drag.py + (e.clientY - drag.y) * k; render(); };
+cv.onpointerup = cv.onpointercancel = () => { drag = null; };
+$('#upload').onclick = async () => {
+  try {
+    const r = await api('/api/images', { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: pack() });
+    const j = await r.json(); toast('Imagen ' + j.id); load();
+  } catch (e) { toast(e.message); }
+};
+render(); load(); screen(); loadDed();
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>instalar el charm</title>
+<style>
+  @font-face { font-family:'DM'; src:url(font.woff2) format('woff2'); font-display:swap }
+  :root {
+    --ground:#0B0B0B; --ink:#FFC61E; --paper:#F5F2E8;
+    --muted:#9A9488; --line:#3A362E; --deep:#7A5E0E; --sunken:#141310;
+  }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--ground); color:var(--paper);
+         font:16px/1.5 'DM', ui-monospace, Menlo, monospace; -webkit-text-size-adjust:100% }
+  main { max-width:620px; margin:0 auto; padding:10px 20px 64px }
+  header { padding:28px 0 10px }
+  h1 { margin:0; font-size:40px; line-height:42px; color:var(--ink); font-weight:400 }
+  h2 { font-size:15px; font-weight:400; color:var(--muted); letter-spacing:.08em;
+       margin:34px 0 10px; text-transform:uppercase }
+  p { margin:10px 0 }
+  a { color:var(--ink) }
+  .lead { color:var(--paper) }
+  .muted { color:var(--muted); font-size:14px }
+  ol, ul { padding-left:22px; margin:10px 0 }
+  li { margin:7px 0 }
+  code { color:var(--ink) }
+  .sunken { border:2px solid var(--line); background:var(--sunken); padding:18px }
+  .screen { display:block; margin:0 auto; width:250px; max-width:100%; image-rendering:pixelated }
+  .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-top:14px }
+  esp-web-install-button { --esp-tools-button-color:var(--ground);
+    --esp-tools-button-text-color:var(--ground); --esp-tools-button-border-radius:0 }
+  esp-web-install-button::part(button) { font:inherit; font-size:16px; padding:14px 18px;
+    border:2px solid var(--ink); background:var(--ink); color:var(--ground);
+    box-shadow:4px 4px 0 0 var(--deep); border-radius:0; cursor:pointer }
+  esp-web-install-button::part(button):active { transform:translate(2px,2px); box-shadow:2px 2px 0 0 var(--deep) }
+  esp-web-install-button.ghost::part(button) { background:transparent; border-color:var(--line);
+    color:var(--muted); box-shadow:none }
+  .nope { border:2px dashed var(--line); padding:14px; color:var(--muted); font-size:14px }
+  table { border-collapse:collapse; width:100%; font-size:14px; margin-top:10px }
+  td, th { border:2px solid var(--line); padding:8px 10px; text-align:left; font-weight:400 }
+  th { color:var(--muted) }
+  footer { margin-top:44px; color:var(--muted); font-size:13px; border-top:2px solid var(--line); padding-top:14px }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>charm</h1>
+    <p class="lead">Un poema al azar en una pantalla de tinta electrónica. Esta página instala su
+      firmware en una placa <b>Heltec Vision Master E213</b> desde el navegador, sin instalar nada.</p>
+  </header>
+
+  <div class="sunken">
+    <img class="screen" src="pantalla.png" alt="La pantalla del charm con el reverso de la carta 6">
+  </div>
+
+  <h2>Necesitas</h2>
+  <ul>
+    <li>una placa <b>Heltec Vision Master E213</b> (ESP32-S3 con pantalla e-ink de 2.13");</li>
+    <li>un cable <b>USB-C de datos</b>, no uno de solo carga;</li>
+    <li><b>Chrome</b> o <b>Edge</b> en un ordenador. Safari, Firefox y los móviles no pueden hablar
+      con el puerto serie.</li>
+  </ul>
+
+  <h2>Instalar</h2>
+  <div class="row">
+    <esp-web-install-button manifest="manifest.json">
+      <button slot="activate">instalar el charm</button>
+      <span slot="unsupported" class="nope">Este navegador no puede conectarse al puerto serie.
+        Abre esta página en Chrome o Edge en un ordenador.</span>
+      <span slot="not-allowed" class="nope">Hace falta abrir la página por https:// o en localhost.</span>
+    </esp-web-install-button>
+    <esp-web-install-button class="ghost" manifest="manifest-solo-firmware.json">
+      <button slot="activate">solo firmware</button>
+      <span slot="unsupported"></span>
+      <span slot="not-allowed"></span>
+    </esp-web-install-button>
+  </div>
+  <p class="muted"><b>instalar el charm</b> deja la placa lista, con tres poemas de ejemplo y una
+    dedicatoria para probar. <b>solo firmware</b> actualiza el programa y no toca los poemas que ya
+    estén dentro.</p>
+  <ol>
+    <li>Conecta la placa al ordenador con el cable USB-C.</li>
+    <li>Pulsa el botón de arriba y elige el puerto que aparezca (suele poner <code>usbmodem</code> o
+      <code>COM</code>).</li>
+    <li>Elige <b>Install</b> y espera un par de minutos sin desconectar el cable.</li>
+    <li>Al terminar, la pantalla muestra la carta de as. Mantén pulsado el botón más cercano al USB
+      y saldrá un poema.</li>
+  </ol>
+
+  <h2>Si no aparece ningún puerto</h2>
+  <ul>
+    <li>Prueba otro cable: muchos cables USB-C solo llevan corriente.</li>
+    <li>La placa puede estar dormida. <b>Mantén pulsado BOOT</b> (el botón junto al USB) <b>y toca
+      RST</b> (el del medio); o conecta el cable con BOOT pulsado. Entra en modo de carga y el puerto
+      aparece.</li>
+    <li>En Windows, si el puerto sale con un aviso, instala el driver USB del fabricante del cable o
+      prueba otro puerto USB.</li>
+  </ul>
+
+  <h2>Después de instalar</h2>
+  <table>
+    <tr><th>Botón 1 (junto al USB)</th><td>mantener: una carta nueva · tocar: pasar página</td></tr>
+    <tr><th>Botón 2 (el más lejano)</th><td>tocar: guardar la carta · mantener: abrir el WiFi</td></tr>
+    <tr><th>Red del charm</th><td><b>amarilla-marin</b>, clave <b>sin-duda</b>, en
+      <code>http://192.168.4.1</code></td></tr>
+  </table>
+  <p>Desde esa página se escriben los poemas, se suben imágenes, se cambia el nombre y se deja una
+    dedicatoria, que será la carta de as.</p>
+
+  <h2>Desde la terminal</h2>
+  <p class="muted">Si prefieres no usar el navegador, con
+    <a href="https://docs.espressif.com/projects/esptool/">esptool</a> instalado:</p>
+  <pre class="sunken muted" style="overflow:auto"><code>esptool --chip esp32s3 write-flash -z \
+  0x0 firmware/bootloader.bin 0x8000 firmware/partitions.bin \
+  0xe000 firmware/boot_app0.bin 0x10000 firmware/charm.bin \
+  0x670000 firmware/littlefs.bin</code></pre>
+
+  <footer>
+    Firmware libre para la Heltec Vision Master E213. Los poemas de ejemplo son de dominio público
+    (Sor Juana Inés de la Cruz, Rosalía de Castro). Tipografía Departure Mono (OFL).
+  </footer>
+</main>
+<script type="module" src="https://cdn.jsdelivr.net/npm/esp-web-tools@10.4.0/dist/web/install-button.js"></script>
+</body>
+</html>
